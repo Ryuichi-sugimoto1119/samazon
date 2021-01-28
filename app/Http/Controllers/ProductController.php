@@ -28,7 +28,7 @@ class ProductController extends Controller
 
         if ($request->category !== null) {
             $products = Product::where('category_id', $request->category)->sortable($sort_query)->paginate(15);
-             $category = Category::find($request->category);
+            $category = Category::find($request->category);
         } else {
             $products = Product::sortable($sort_query)->paginate(15);
             $category = null;

@@ -4,7 +4,7 @@
 <div class="container  d-flex justify-content-center mt-3">
     <div class="w-75">
         <h1>お気に入り</h1>
-
+            
         <hr>
 
         <div class="row">
@@ -21,13 +21,15 @@
                 </div>
             </div>
             <div class="col-md-2 d-flex align-items-center justify-content-end">
-                <a href="/products/{{ $fav->id }}/favorite" class="samazon-favorite-item-delete">
+                <a href="/products/{{ App\Product::find($fav->favoriteable_id)->id }}/favorite" class="samazon-favorite-item-delete">
                     削除
                 </a>
             </div>
             <div class="col-md-2 d-flex align-items-center justify-content-end">
                 <button type="submit" class="btn samazon-favorite-add-cart text-white w-100">カートに入れる</button>
             </div>
+            
+            
             @endforeach
         </div>
 

@@ -76,13 +76,20 @@ class UserController extends Controller
         return redirect()->route('mypage');
     }
     
-    public function favorite()
+    public function favorite(Product $products)
     {
         $user = Auth::user();
 
         $favorites = $user->favorites(Product::class)->get();
+        
+        // if ($user->hasFavorited($products)) {
+        //     $user->unfavorite($products);
+        // } else {
+        //     $user->favorite($products);
+        // }
+        // var_dump($products);exit;
 
-        return view('users.favorite', compact('favorites'));
+        return view('users.favorite', compact('favorites','products'));
     }
 
     
