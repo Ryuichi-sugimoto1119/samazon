@@ -16,17 +16,20 @@ class CartController extends Controller
      */
     public function index()
     {
-       $cart = Cart::instance(Auth::user()->id)->content();
+        $cart = Cart::instance(Auth::user()->id)->content();
 
         $total = 0;
 
         foreach ($cart as $c) {
-            $total += $c->qty * $c->price;
+            if($c->options->carriage) {
+                $total += ($c->qty * ($c->price + 800));
+            } else {
+                $total += $c->qty * $c->price;
+            }
         }
 
         return view('carts.index', compact('cart', 'total'));
     }
-
 
     /**
      * Store a newly created resource in storage.
@@ -38,16 +41,18 @@ class CartController extends Controller
     {
         Cart::instance(Auth::user()->id)->add(
             [
-                'id' => $request->_token, 
-                'name' => $request->name, 
-                'qty' => $request->qty, 
-                'price' => $request->price, 
-                'weight' => $request->weight, 
-            ] 
+                'id' => $request->_token,
+                'name' => $request->name,
+                'qty' => $request->qty,
+                'price' => $request->price,
+                'weight' => $request->weight,
+                'options' => [
+                    'carriage' => $request->carriage
+                ]
+            ]
         );
 
         return redirect()->route('products.show', $request->get('id'));
-
     }
 
     /**
@@ -61,18 +66,6 @@ class CartController extends Controller
         $cart = DB::table('shoppingcart')->where('instance', Auth::user()->id)->where('identifier', $count)->get();
 
         return view('carts.show', compact('cart'));
-
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
     }
 
     /**
@@ -101,17 +94,44 @@ class CartController extends Controller
      */
     public function destroy(Request $request)
     {
-      $user_shoppingcarts = DB::table('shoppingcart')->where('instance', Auth::user()->id)->get();
+       $user_shoppingcarts = DB::table('shoppingcart')->get();
+       $number = DB::table('shoppingcart')->where('instance', Auth::user()->id)->count();
 
-        $count = $user_shoppingcarts->count();
+       $count = $user_shoppingcarts->count();
 
-        $count += 1;
-        Cart::instance(Auth::user()->id)->store;
+       $count += 1;
+       $number += 1;
+       $cart = Cart::instance(Auth::user()->id)->content();
 
-        DB::table('shoppingcart')->where('instance', Auth::user()->id)->where('number', null)->update(['number' => $count, 'buy_flag' => true]);
+       $price_total = 0;
+       $qty_total = 0;
 
-        Cart::instance(Auth::user()->id)->destroy();
+       foreach ($cart as $c) {
+           if ($c->options->carriage) {
+               $price_total += ($c->qty * ($c->price + 800));
+           } else {
+               $price_total += $c->qty * $c->price;
+           }
+           $qty_total += $c->qty;
+       }
 
-        return redirect()->route('carts.index');
+       Cart::instance(Auth::user()->id)->store($count);
+
+       DB::table('shoppingcart')->where('instance', Auth::user()->id)
+                                ->where('number', null)
+                                ->update(
+                                    [
+                                        'code' => substr(str_shuffle('1234567890abcdefghijklmnopqrstuvwxyz'), 0, 10),
+                                        'number' => $number, 
+                                        'price_total' => $price_total,
+                                        'qty' => $qty_total,
+                                        'buy_flag' => true, 
+                                        'updated_at' => date("Y/m/d H:i:s")
+                                    ]
+                                );
+
+       Cart::instance(Auth::user()->id)->destroy();
+
+       return redirect()->route('carts.index');
     }
 }

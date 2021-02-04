@@ -83,13 +83,30 @@ class UserController extends Controller
         $favorites = $user->favorites(Product::class)->get();
         
         // if ($user->hasFavorited($products)) {
-        //     $user->unfavorite($products);
+        //     $user->unfavorite$$products);
         // } else {
-        //     $user->favorite($products);
+        //     $user->favorites$$products;
         // }
-        // var_dump($products);exit;
+        
 
         return view('users.favorite', compact('favorites','products'));
+    }
+    
+    public function destroy(Request $request)
+   {
+       $user = Auth::user();
+        
+       if ($user->deleted_flag) {
+           $user->deleted_flag = false;
+       } else {
+           $user->deleted_flag = true;
+       }
+
+       $user->update();
+
+       Auth::logout();
+
+       return redirect('/');
     }
 
     
